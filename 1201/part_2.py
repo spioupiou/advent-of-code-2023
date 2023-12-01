@@ -1,10 +1,9 @@
 import re
 
-with open('test_input.txt') as f:
+with open('input.txt') as f:
   lines = f.readlines()
 
 number_words = {
-    'zero': '0',
     'one': '1',
     'two': '2',
     'three': '3',
@@ -19,24 +18,18 @@ number_words = {
 first_last_digits = []
 for i, line in enumerate(lines):
   line = line.strip('\n')
-  digits = re.findall(r'zero|one|two|three|four|five|six|seven|eight|nine|\d', line)
-  
+  digits = re.findall(r'(?=(one|two|three|four|five|six|seven|eight|nine|\d))', line)
   if len(digits) == 1:
-    first_last_digits.extend([digits[0], digits[0]])
-    print(i+1, digits[0], digits[0])
+    first_last_digits.append((digits[0], digits[0]))
   else:
-    first_last_digits.extend([digits[0], digits[-1]])
-    print(i+1, digits[0], digits[-1])
-
-# print(first_last_digits)
+    first_last_digits.append((digits[0], digits[-1]))
 
 arr = []
-for i in range(0, len(first_last_digits), 2):
-  if i == len(first_last_digits) - 1:
-    break
-  digit1 = number_words.get(first_last_digits[i], first_last_digits[i])
-  digit2 = number_words.get(first_last_digits[i+1], first_last_digits[i+1])
-  str = digit1+digit2
+for pair in first_last_digits:
+  digit1 = pair[0]
+  digit2 = pair[1]
+
+  str = number_words.get(digit1, digit1) + number_words.get(digit2, digit2)
   arr.append(int(str))
 
 print(sum(arr))
