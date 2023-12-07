@@ -13,17 +13,35 @@ class Converter:
       rule_range = range(rule[1], rule[1]+rule[2])
       overlap = range(max(rule_range.start,seed.start), min(rule_range.stop,seed.stop)) or None
 
-      if overlap != None: 
-        shifted.append(range(seed.start - rule[1] + rule[0], seed.stop - rule[1] + rule[0]))
+      if overlap != None:
+        start_bound = seed.start if seed.start in overlap else overlap.start
+        end_bound = seed.stop if seed.stop in overlap else overlap.stop
+        shifted1 = start_bound - rule[1] + rule[0]  
+        shifted2 = end_bound - rule[1] + rule[0]
+        shifted.append(range(min([shifted1, shifted2]), max([shifted1, shifted2]))) 
+        print("shifted: ", range(start_bound, end_bound), shifted[-1], end = " ")
         overlaps.append(overlap)
 
-    overlaps = sorted(overlaps, key=lambda x: x.start)
-    flat = chain((seed.start-1,), chain.from_iterable(overlaps), (seed.stop+1,))
-    gaps = [range(x+1, y-1) for x, y in zip(flat, flat) if x+1 < y]
 
-    for gap in gaps:
-      if gap.start != gap.stop:
-        shifted.append(gap)
+    overlaps = sorted((x.start, x.stop) for x in overlaps)
+    print("overlaps: ", overlaps, end = " ")
+    gaps = []
+    if not overlaps:
+      # If no overlaps (no matching rules) then use seed as is
+      gaps = [seed]
+    else:
+      # Add the first gap if it exists
+      if seed.start < overlaps[0][0]:
+          gaps.append(range(seed.start, overlaps[0][0] - 1))
+      # Add gaps between overlaps
+      for i in range(len(overlaps) - 1):
+          if overlaps[i][1] < overlaps[i+1][0]:
+              gaps.append(range(overlaps[i][1] + 1, overlaps[i+1][0] - 1))
+      # Add the last gap if it exists
+      if seed.stop > overlaps[-1][1]:
+          gaps.append(range(overlaps[-1][1] + 1, seed.stop))
+    print("gaps:", gaps)
+    shifted.extend([gap for gap in gaps])
 
     return shifted
 
@@ -64,22 +82,28 @@ def parse(file):
   return seeds, converters
 
 
-def solve_part_1(seeds, converters):
+def solve_part_2(seeds, converters):
   arr = []
-  for seed in seeds:
+  for i, seed in enumerate(seeds):
     results = [seed]
     for i, converter in enumerate(converters):
-      print(i, end = " ")
-      # if i == 1: break
+      print("converter ", i + 1, end = " - ")
       transformed_ranges = []
       for result in results:
         transformed = converter.transform(result)
         transformed_ranges.extend(transformed)
       results = transformed_ranges
-      print(results, end = "")
-    arr.append(results)
-  print(arr)
+      print("result: ", results)
+    arr.extend(results)
   # return min(arr)
 
-seeds, converters = parse("test_input.txt")
-solve_part_1(seeds, converters)
+  print("RESULTS: ")
+  print(arr)
+  arr2 = []
+  for result in arr:
+    arr2.append(result.start)
+
+  print(min(arr2))
+
+seeds, converters = parse("input.txt")
+solve_part_2(seeds, converters)
