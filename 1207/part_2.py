@@ -2,7 +2,7 @@ import re
 from collections import defaultdict, Counter
 from functools import cmp_to_key
 
-card_values = [("A", 13), ("K", 12), ("Q", 11), ("J", 10), ("T", 9), ("9", 8), ("8", 7), ("7", 6), ("6", 5), ("5", 4), ("4", 3), ("3", 2), ("2", 1)]
+card_values = [("A", 13), ("K", 12), ("Q", 11), ("J", 0), ("T", 9), ("9", 8), ("8", 7), ("7", 6), ("6", 5), ("5", 4), ("4", 3), ("3", 2), ("2", 1)]
 card_values = {card: value for card, value in card_values}
 
 hand_types = [(5, 7), (4, 6), ("full", 5), (3, 4), ("double_pair", 3), (2, 2), ("distinct", 1)]
@@ -19,17 +19,40 @@ def parse(file):
 
 def get_hand_type(hand):
   char_counts = Counter(hand)
+  j_count = char_counts.pop('J', None)
   char_counts_arr = list(char_counts.values())
-  max_value = max(char_counts_arr)
 
-  if 2 in char_counts_arr and 3 in char_counts_arr:
-    return hand_types["full"]
-  elif len(list(filter(lambda x: x == 2, char_counts_arr))) == 2:
-    return hand_types["double_pair"]
-  elif max_value == 1:
-    return hand_types["distinct"]
+  if len(list(char_counts.values())) == 0:
+    max_value = None
   else:
-    return hand_types[max_value]
+    max_value = max(list(char_counts.values())) 
+  if j_count == 5 or j_count == 4:
+    return hand_types[5]
+  elif j_count == 3 and 2 in char_counts_arr:
+    return hand_types[5]
+  elif j_count == 2 and 3 in char_counts_arr:
+    return hand_types[5]
+  elif j_count == 2 and 2 in char_counts_arr:
+    return hand_types[4]
+  elif j_count == 1 and 4 in char_counts_arr:
+    return hand_types[5]
+  elif j_count == 1 and 3 in char_counts_arr:
+    return hand_types[4]
+  elif j_count == 1 and len(list(filter(lambda x: x == 2, char_counts_arr))) == 2:
+    return hand_types["full"]
+  elif j_count == 1 and 2 in char_counts_arr:
+    return hand_types[3]
+  elif j_count == 3 or j_count == 2 or j_count == 1:
+    return hand_types[j_count+1]
+  else:
+    if 2 in char_counts_arr and 3 in char_counts_arr:
+      return hand_types["full"]
+    elif len(list(filter(lambda x: x == 2, char_counts_arr))) == 2:
+      return hand_types["double_pair"]
+    elif max_value == 1:
+      return hand_types["distinct"]
+    else:
+      return hand_types[max_value]
 
 def sort_hands(first_hand, second_hand):
   first_hand_type = get_hand_type(first_hand)
@@ -60,17 +83,16 @@ def rank_players(players):
         break
   return sorted_players
 
-
-def solve_part_1(players):
-  sorted_players = rank_players(players)
+def solve_part_2(players):
+  players_ranking = rank_players(players)
   rank = len(players)
   sum = 0
 
-  for player in sorted_players:
+  for player in players_ranking:
     sum += player['bid'] * rank
     rank -= 1
     
   return sum
 
 players = parse("input.txt")
-print(solve_part_1(players))
+print(solve_part_2(players))
