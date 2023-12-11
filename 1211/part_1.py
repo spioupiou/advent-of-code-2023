@@ -23,26 +23,29 @@ def parse(file):
   return image
 
 def expand(image):
+  # Rows entirely made of '.'
   indexes_y = []
-  for y in range(0, len(image)):
-    if all(image[y][x] == '.' for x in range(0, len(image[y]))):
-      indexes_y.append(y)
+  for i, row in enumerate(image):
+    if all(num == '.' for num in row):
+      indexes_y.append(i)
 
+  # Insert new rows from bottom 
+  indexes_y.reverse()
   for i in indexes_y:
-    image.insert(len(image[y]) - i, ['.' for i in range(0, len(image[y]))])
+    image.insert(i, ['.' for _ in range(len(image[0]))])
 
+  # Columns entirely made of '.'
   indexes_x = []
   for i in range(len(image[0])):
-    # getting column 
-    col = [row[i] for row in image]
-     
-    if all(x == '.' for x in col):
+    if all(row[i] == '.' for row in image):
       indexes_x.append(i)
-    
-  for row in image:
-    positions = [len(row)-i for i in indexes_x]
-    for pos in positions:
-      row.insert(pos, '.')
+      
+  # Insert new columns
+  indexes_x.reverse()
+  for i in indexes_x:
+      for row in image:
+          for num in range(0, 1_000_000):
+            row.insert(i, '.')
 
   return image
 
@@ -69,7 +72,7 @@ def solve_part_1(space_image):
   print(len(paths))
   return sum(paths)
 
-space = parse('test_input.txt')
+space = parse('input.txt')
 print(solve_part_1(space))
 
   
