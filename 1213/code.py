@@ -1,5 +1,4 @@
 import copy
-import re
 
 def parse(file):
   with open(file) as f:
@@ -56,10 +55,7 @@ def search_y_axis(terrain):
       indexes_y.append(i)
   return [idx+1 for idx in indexes_y]
 
-def calculate_score(terrain):
-  indexes_x = search_x_axis(terrain)
-  indexes_y = search_y_axis(terrain)
-
+def calculate_score(indexes_x, indexes_y):
   score = 0
   for index in indexes_y:
     score += index * 100
@@ -81,10 +77,22 @@ def flip(block, coordinates):
         block[y] = row[:x] + flip_char(char) + row[x+1:]
         return block
 
+def difference(indexes, original_indexes):
+  print(indexes, original_indexes, end =" ")
+  if indexes != original_indexes and indexes != []:
+    print("in the loop")
+    sX = set(indexes)
+    soX = set(original_indexes)
+    return list(sX.difference(soX))
+  else:
+    return []
+  
 def solve_part_1(terrains):
   total = 0
   for terrain in terrains:
-    score = calculate_score(terrain)
+    indexes_x = search_x_axis(terrain)
+    indexes_y = search_y_axis(terrain)
+    score = calculate_score(indexes_x, indexes_y)
     total += score
 
   print(total)
@@ -92,27 +100,36 @@ def solve_part_1(terrains):
 def solve_part_2(terrains):
   total = 0
   for terrain in terrains:
-    original_score = calculate_score(terrain)
+    broke = False
+    original_indexes_x = search_x_axis(terrain)
+    original_indexes_y = search_y_axis(terrain)
+    print("ORIGINAL: ", original_indexes_x, original_indexes_y)
     for y, row in enumerate(terrain):
       for x, _ in enumerate(row):
-        score = calculate_score(flip(copy.deepcopy(terrain), (x,y)))
-        if score != original_score and score != 0:
+        flipped_terrain = flip(copy.deepcopy(terrain), (x,y))
+        indexes_x = search_x_axis(flipped_terrain)
+        indexes_y = search_y_axis(flipped_terrain)
+        result_x = difference(indexes_x, original_indexes_x)
+        result_y = difference(indexes_y, original_indexes_y)
+        print(result_x, result_y)
+        if result_x != [] or result_y != []:
+          score = calculate_score(result_x, result_y)
           total += score
+          print("in nested loop")
+          broke = True
           break
-    
+      if broke:
+        break
+      
+
+
   print(total)
 
 
-terrains = parse('test_input.txt')
-solve_part_1(terrains)
+terrains = parse('input.txt')
+# solve_part_1(terrains)
 solve_part_2(terrains)
 
-
-
-
-
-
-# print(terrain)
 
 
   
