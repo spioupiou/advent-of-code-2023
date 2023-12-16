@@ -1,5 +1,4 @@
 import re
-import numpy as np
 
 def parse(file):
   with open(file) as f:
