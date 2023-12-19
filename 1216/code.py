@@ -10,9 +10,6 @@ class Tile:
         return self.x == other.x and self.y == other.y and self.direction == other.direction
     return False
 
-  def __hash__(self):
-      return hash((self.x, self.y, self.direction))
-
 def parse(file):
   with open(file) as f:
     lines = [line.strip('\n') for line in f]
@@ -64,58 +61,6 @@ def find_next_move(tile):
     # All other cases, return with same direction as before ('.', '>-', 'v|' etc.)
     return [Tile(next_x, next_y, tile.direction)]
 
-# def find_next_move(tile):
-  # next_x, next_y = move(tile.x, tile.y, tile.direction)
-  # # If next tile within the matrix
-  # if 0 <= next_x < len(layout[0]) and 0 <= next_y < len(layout):
-  #   if layout[next_y][next_x] == '|':
-  #     match tile.direction:
-  #       # Split when > or <
-  #       case '<':
-  #         tile1 = Tile(next_x, next_y, '^')
-  #         tile2 = Tile(next_x, next_y, 'v')
-  #         return [tile1, tile2]
-  #       case '>':
-  #         tile1 = Tile(next_x, next_y, '^')
-  #         tile2 = Tile(next_x, next_y, 'v')
-  #         return [tile1, tile2]
-  #   elif layout[next_y][next_x] == '-':
-  #     match tile.direction:
-  #       # Split when v or ^
-  #       case '^':
-  #         tile1 = Tile(next_x, next_y, '<')
-  #         tile2 = Tile(next_x, next_y, '>')
-  #         return [tile1, tile2]
-  #       case 'v':
-  #         tile1 = Tile(next_x, next_y, '<')
-  #         tile2 = Tile(next_x, next_y, '>')
-  #         return [tile1, tile2]
-  #   elif layout[next_y][next_x] == '/':
-  #     match tile.direction:
-  #       case '<':
-  #         return [Tile(next_x, next_y, 'v')]
-  #       case '>':
-  #         return [Tile(next_x, next_y, '^')]
-  #       case '^':
-  #         return [Tile(next_x, next_y, '>')]
-  #       case 'v':
-  #         return [Tile(next_x, next_y, '<')]
-  #   elif layout[next_y][next_x] == '\\':
-  #     match tile.direction:
-  #       case '<':
-  #         return [Tile(next_x, next_y, '^')]
-  #       case '>':
-  #         return [Tile(next_x, next_y, 'v')]
-  #       case '^':
-  #         return [Tile(next_x, next_y, '<')]
-  #       case 'v':
-  #         return [Tile(next_x, next_y, '>')]
-  # # If not within the matrix, return an empty list
-  # else:
-  #   return []
-  # # All other cases, return with same direction as before ('.', '>-', 'v|' etc.)
-  # return [Tile(next_x, next_y, tile.direction)]
-
 def count_visited(start):
   visited = set()
   to_visit = [start]
@@ -162,7 +107,7 @@ def solve_part_2(layout):
         elif x == len(row) - 1:
           start = Tile(x+1, y, '<')
         all_visited_counts.append(count_visited(start))
-        
+
       ## Last row
       elif y == len(layout) - 1:
         start = Tile(x, y+1, '^')
