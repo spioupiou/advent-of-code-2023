@@ -30,16 +30,17 @@ def draw_matrix(instructions):
           dug_tiles.add(current)
 
   # find all coordinates within the dug_tiles
-  max_y = max(dug_tiles, key=lambda x: x[1])[1]
-  max_x = max(dug_tiles, key=lambda x: x[0])[0]
-  min_y = min(dug_tiles, key=lambda x: x[1])[1]
-  min_x = min(dug_tiles, key=lambda x: x[0])[0]
+  max_y = max(dug_tiles, key=lambda coord: coord[1])[1]
+  max_x = max(dug_tiles, key=lambda coord: coord[0])[0]
+  min_y = min(dug_tiles, key=lambda coord: coord[1])[1]
+  min_x = min(dug_tiles, key=lambda coord: coord[0])[0]
 
   matrix = [['#' if (x, y) in dug_tiles else '.' for x in range(min_x, max_x + 1)] for y in range(min_y, max_y + 1)]
 
-  return matrix, dug_tiles
+  return matrix
 
-def get_neighbours(matrix, current, dug_tiles):
+
+def get_neighbours(matrix, current):
   neighbours = []
   x, y = current
   directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]  # right, left, down, up
@@ -62,7 +63,7 @@ def point_in_polygon(matrix, start, dug_tiles):
   while queue != []:
     current = queue.pop(0)
 
-    neighbours = get_neighbours(matrix, current, dug_tiles)
+    neighbours = get_neighbours(matrix, current)
 
     for neighbour in neighbours:
       if neighbour not in visited:
@@ -73,23 +74,26 @@ def point_in_polygon(matrix, start, dug_tiles):
 
 def solve_part_1():
   instructions = parse('input.txt')
-  matrix, boundaries = draw_matrix(instructions)
+  matrix = draw_matrix(instructions)
 
-  start: tuple
-  broke = False
+  boundaries = []
   for y, row in enumerate(matrix):
     for x, tile in enumerate(row):
-      if tile == '.':
-          start = (x, y)
-          broke = True
-          break
-    if broke:
-      break
+      if tile == '#':
+        boundaries.append((x, y))
 
+  # print(boundaries)
+
+
+  # print_matrix(matrix)
+  # find boundaries with the smallest y:
+  bounds = list(boundaries)
+  bounds.sort(key=lambda coord: (coord[1], coord[0]))
+  print(bounds)
+  start = ((59 + 63)//2, 1)
   print(start)
 
   visited = point_in_polygon(matrix, start, boundaries)
   print(len(visited))
-  print_matrix(matrix)
   
 solve_part_1()
