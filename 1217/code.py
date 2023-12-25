@@ -5,6 +5,7 @@ class Tile:
     self.x = x
     self.y = y
     self.heat = heat
+    self.last_three_moves = []
   
 class Graph:
   def __init__(self, tiles, start, end) -> None:
@@ -15,13 +16,15 @@ class Graph:
   # TODO: Add constraints - can't move more than 3 times in same direction, can't go back
   def get_neighbours(self, tile) -> tuple:
     # Up, right, down, left
-    adjacent_coordinates = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    adjacent_coordinates = {'U': (0, -1), 'R': (1, 0), 'D': (0, 1), 'L': (-1, 0)}
     neighbours = []
-    for adjacent_coordinate in adjacent_coordinates:
+    for direction, adjacent_coordinate in adjacent_coordinates.items():
       neighbour = self.find_by_coordinates(tile.x + adjacent_coordinate[0], tile.y + adjacent_coordinate[1])
-      # Only append neighbour if it is within the graph
       if neighbour != None:
-        neighbours.append(neighbour)
+        print(tile.x, tile.y, neighbour.x, neighbour.y, direction)
+      # Only append neighbour if it is within the graph and if it doesn't violate the 3 steps constraint
+      if neighbour != None and tile.last_three_moves.count(direction) < 3:
+        neighbours.append((neighbour, direction))
     return neighbours
   
   def find_by_coordinates(self, x, y) -> Tile:
@@ -70,13 +73,16 @@ while unvisited_nodes:
       min_node = node
 
   # For each neighbour of the node
-  for neighbour in heat_map.get_neighbours(min_node):
+  neighbours = heat_map.get_neighbours(min_node)
+  for neighbour, direction in neighbours:
     # Calculate the cost of getting to the neighbour
     cost = shortest_path[min_node] + neighbour.heat
     # If the cost is less than the current cost of the neighbour
+    print(neighbour.last_three_moves)
     if cost < shortest_path[neighbour]:
       # Update the cost of the neighbour
       shortest_path[neighbour] = cost
+      neighbour.last_three_moves = (min_node.last_three_moves + [direction])[-3:]
 
   # Remove the node from the unvisited nodes
   unvisited_nodes.remove(min_node)
