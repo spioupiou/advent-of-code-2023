@@ -6,6 +6,7 @@ class Tile:
     self.y = y
     self.heat = heat
     self.last_three_moves = []
+    self.prev = None
   
 class Graph:
   def __init__(self, tiles, start, end) -> None:
@@ -20,8 +21,6 @@ class Graph:
     neighbours = []
     for direction, adjacent_coordinate in adjacent_coordinates.items():
       neighbour = self.find_by_coordinates(tile.x + adjacent_coordinate[0], tile.y + adjacent_coordinate[1])
-      if neighbour != None:
-        print(tile.x, tile.y, neighbour.x, neighbour.y, direction)
       # Only append neighbour if it is within the graph and if it doesn't violate the 3 steps constraint
       if neighbour != None and tile.last_three_moves.count(direction) < 3:
         neighbours.append((neighbour, direction))
@@ -78,13 +77,23 @@ while unvisited_nodes:
     # Calculate the cost of getting to the neighbour
     cost = shortest_path[min_node] + neighbour.heat
     # If the cost is less than the current cost of the neighbour
-    print(neighbour.last_three_moves)
     if cost < shortest_path[neighbour]:
       # Update the cost of the neighbour
       shortest_path[neighbour] = cost
       neighbour.last_three_moves = (min_node.last_three_moves + [direction])[-3:]
+      neighbour.prev = min_node
 
   # Remove the node from the unvisited nodes
   unvisited_nodes.remove(min_node)
+
+path = []
+current_tile = heat_map.end
+while current_tile is not None:
+  path.append(current_tile)
+  current_tile = current_tile.prev
+path = path[::-1]  # Reverse the path to start from the start tile
+
+for node in path:
+  print(node.x, node.y, node.last_three_moves)
 
 print(shortest_path[heat_map.end])
