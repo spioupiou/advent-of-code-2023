@@ -5,7 +5,8 @@ class Tile:
     self.x = x
     self.y = y
     self.heat = heat
-    self.last_three_moves = []
+    self.steps = 0
+    self.direction = None
     self.prev = None
   
 class Graph:
@@ -21,9 +22,17 @@ class Graph:
     neighbours = []
     for direction, adjacent_coordinate in adjacent_coordinates.items():
       neighbour = self.find_by_coordinates(tile.x + adjacent_coordinate[0], tile.y + adjacent_coordinate[1])
-      # Only append neighbour if it is within the graph and if it doesn't violate the 3 steps constraint
-      if neighbour != None and tile.last_three_moves.count(direction) < 3:
-        neighbours.append((neighbour, direction))
+
+      if neighbour != None and neighbour != tile.prev:
+        neighbour.direction = direction
+        neighbour.prev = tile
+        if neighbour.direction != tile.direction:
+          neighbour.steps = 1
+        else:
+          neighbour.steps = tile.steps + 1
+        if neighbour.steps <= 3:
+          neighbours.append(neighbour)
+
     return neighbours
   
   def find_by_coordinates(self, x, y) -> Tile:
@@ -46,54 +55,41 @@ class Graph:
     
   
 heat_map = Graph.parse('test_input.txt')
-
-unvisited_nodes = list(heat_map.tiles)
 start_node = heat_map.start
+queue = set()
+queue.add((start_node.x, start_node.y, 0, 'R'))
 
-# Store the minimum cost of visiting each tile starting from start_node
-# key = node, value = heat loss to get to node
-shortest_path = {}
+processed_nodes = set()
 
-# Initialize all nodes to infinity
-infinity = sys.maxsize
-for node in unvisited_nodes:
-  shortest_path[node] = infinity
-# Except start node, which is 0 (no heat loss to get to start node)
-shortest_path[start_node] = 0
+# Store the minimum cost of visiting each tile starting from start_node. Use start_node with cost 0 as the starting point
+# key = coordinates, number of steps, direction -- value = heat loss to get to node
+shortest_path = {(start_node.x, start_node.y, 0, 'R'): 0}
 
+i = 0
 # While there are still unvisited nodes
-while unvisited_nodes:
+while queue:
   # Find the node with the smallest cost
-  min_node = None
-  for node in unvisited_nodes:
-    if min_node == None:
-      min_node = node
-    elif shortest_path[node] < shortest_path[min_node]:
-      min_node = node
+  min_node_key = None
+  for node_key in queue:
+    if min_node_key == None:
+      min_node_key = node_key
+    elif shortest_path[node_key] < shortest_path[min_node_key]:
+      min_node_key = node_key
 
   # For each neighbour of the node
-  neighbours = heat_map.get_neighbours(min_node)
-  for neighbour, direction in neighbours:
+  neighbours = heat_map.get_neighbours(heat_map.find_by_coordinates(min_node_key[0], min_node_key[1]))
+  for neighbour in neighbours:
     # Calculate the cost of getting to the neighbour
-    cost = shortest_path[min_node] + neighbour.heat
-    # If the cost is less than the current cost of the neighbour
-    if cost < shortest_path[neighbour]:
+    neighbour_key = (neighbour.x, neighbour.y, neighbour.steps, neighbour.direction)
+    if neighbour_key in processed_nodes: continue
+    cost = shortest_path[min_node_key] + neighbour.heat
+    # If the cost is less than the current cost of the neighbour or if the neighbour has not been visited yet
+    if neighbour_key not in shortest_path.keys() or cost < shortest_path[neighbour_key]:
       # Update the cost of the neighbour
-      shortest_path[neighbour] = cost
-      neighbour.last_three_moves = (min_node.last_three_moves + [direction])[-3:]
-      neighbour.prev = min_node
-
+      shortest_path[neighbour_key] = cost
+      print(min_node_key, neighbour_key, cost)
+      queue.add(neighbour_key)
+  print('---')
+  processed_nodes.add(min_node_key)
   # Remove the node from the unvisited nodes
-  unvisited_nodes.remove(min_node)
-
-path = []
-current_tile = heat_map.end
-while current_tile is not None:
-  path.append(current_tile)
-  current_tile = current_tile.prev
-path = path[::-1]  # Reverse the path to start from the start tile
-
-for node in path:
-  print(node.x, node.y, node.last_three_moves)
-
-print(shortest_path[heat_map.end])
+  queue.remove(min_node_key)
