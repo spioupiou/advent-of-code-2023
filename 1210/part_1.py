@@ -72,13 +72,10 @@ def bfs(graph, node):
   while queue:          # Creating loop to visit each node
     new_node = queue.pop(0) 
     neighbours = graph.get_neighbours(new_node)
-    print("node: ", new_node.coordinates, new_node.type, end = " ")
     for neighbour in neighbours:
-      print('neighbour: ', neighbour.coordinates, neighbour.type, end = " ")
       if neighbour not in visited:
         visited.append(neighbour)
         queue.append(neighbour)
-    print('\n')
 
   return(len(visited)/2)
 
@@ -86,8 +83,6 @@ def solve_part_1(network):
   visited_list = []
 
   neighbours = network.get_neighbours(network.start)
-  for neighbour in neighbours:
-    print(neighbour.coordinates, neighbour.type, end = " ")
 
   for i in ['|', '-', 'L', 'J', '7', 'F']:
     starting_point = Pipe(network.start.coordinates, i)
