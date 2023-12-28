@@ -1,8 +1,8 @@
 class Graph:
-  def __init__(self, tiles, height, width) -> None:
+  def __init__(self, tiles, start, end) -> None:
     self.tiles = tiles
-    self.height = height
-    self.width = width
+    self.start = start
+    self.end = end
 
   def get_neighbours(self, coords) -> tuple:
     x, y = coords
@@ -14,13 +14,11 @@ class Graph:
       new_y = y + adjacent_coordinate[1]
 
       # If neighbour not within the bounds of matrix, skip
-      if new_x < 0 or new_x >= self.width or new_y < 0 or new_y >= self.height:
+      if new_x < 0 or new_x >= len(self.tiles[0]) or new_y < 0 or new_y >= len(self.tiles):
         continue
       # If neighbour is # then skip
       if self.tiles[new_y][new_x] == '#':
         continue
-
-      # If neighbour is previous node then skip
       
       # If ^ > < v then only possible move is in the direction the arrow is pointing
       if self.tiles[y][x] in ['^', '>', 'v', '<'] and self.tiles[y][x] != dir:
@@ -35,6 +33,7 @@ class Graph:
       lines = [line.strip('\n') for line in f]
       height = len(lines)
       width = len(lines[0])
+      start, end = None, None
 
       tiles = [[None for _ in range(width)] for _ in range(height)]
 
@@ -42,33 +41,57 @@ class Graph:
         for x, char in enumerate(line):
           tiles[y][x] = char
       
-      return Graph(tiles, height, width)
+      for y, row in enumerate(tiles):
+        for x, char in enumerate(row):
+          if y == 0 and char == '.':
+            start = (x, y)
+          elif y == len(tiles) - 1 and char == '.':
+            end = (x, y)
+            break
 
-def find_longest_path(graph, node):
-  visited = []
-  queue = []
+      return Graph(tiles, start, end)
 
-  visited.append(node)
-  queue.append(node)
+def dfs(graph, node):
+  # List to store all the paths from the start node to the end node
+  all_paths = []
+  # Keep track of the node that needs to be visited next and the path to reach each node
+  stack = [(node, [node])]
 
-  while queue:
-    new_node = queue.pop(0) 
-    neighbours = graph.get_neighbours(new_node)
-    for neighbour in neighbours:
-      if neighbour not in visited:
-        visited.append(neighbour)
-        queue.append(neighbour)
+  # As long as the stack is not empty
+  while stack:
+    # path = path from the start node to the current node
+    node, path = stack.pop()
+    # iterate over the neighbours of the current node which are not already in the path
+    for next in set(graph.get_neighbours(node)) - set(path):
+      # If the neighbour is the end node, add the path to all_paths
+      if next == graph.end:
+        all_paths.append(path + [next])
+      # If the neighbour is not the end node, add the neighbour and the path to reach it to the stack
+      else:
+        stack.append((next, path + [next]))
+    neighbours = graph.get_neighbours(node)
 
-  return len(visited)
+  return all_paths
+
+def find_longest_path(graph):
+  all_paths = dfs(graph, graph.start)
+  longest_path = max(all_paths, key=len)
+  return len(longest_path) - 1
   
 
 def solve_part_1():
-  heat_map = Graph.parse('test_input.txt')
-  start_node = None
-  for i, char in enumerate(heat_map.tiles[0]):
-    if char != '#':
-      start_node = (i, 0)
-      break
-  return find_longest_path(heat_map, start_node)
+  heat_map = Graph.parse('input.txt')
+
+  return find_longest_path(heat_map)
+
+def solve_part_2():
+  heat_map = Graph.parse('input.txt')
+  for y in range(0, len(heat_map.tiles)):
+    for x in range(0, len(heat_map.tiles[y])):
+      if heat_map.tiles[y][x] in ['^', '>', 'v', '<']:
+        heat_map.tiles[y][x] = '.'
+
+  return find_longest_path(heat_map)
 
 print(solve_part_1())
+# print(solve_part_2())
