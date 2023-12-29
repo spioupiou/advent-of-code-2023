@@ -84,14 +84,4 @@ def solve_part_1():
 
   return find_longest_path(heat_map)
 
-def solve_part_2():
-  heat_map = Graph.parse('input.txt')
-  for y in range(0, len(heat_map.tiles)):
-    for x in range(0, len(heat_map.tiles[y])):
-      if heat_map.tiles[y][x] in ['^', '>', 'v', '<']:
-        heat_map.tiles[y][x] = '.'
-
-  return find_longest_path(heat_map)
-
 print(solve_part_1())
-# print(solve_part_2())
